@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-400: #a78bfa;
+  --color-surface: #1e1b2e;
+  --color-surface-light: #2a2640;
+  --color-surface-card: #252142;
+}
+
+/* Smooth scrolling and base styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: linear-gradient(135deg, #0f0c1a 0%, #1a1630 50%, #0f0c1a 100%);
+  min-height: 100dvh;
+}
