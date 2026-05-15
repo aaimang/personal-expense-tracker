@@ -2,21 +2,61 @@
 
 @theme {
   --font-sans: "Inter", system-ui, sans-serif;
+
+  /* Brand purple palette */
   --color-brand-500: #8b5cf6;
   --color-brand-600: #7c3aed;
   --color-brand-400: #a78bfa;
-  --color-surface: #1e1b2e;
-  --color-surface-light: #2a2640;
-  --color-surface-card: #252142;
+
+  /* Glass surface tokens — used throughout App.jsx */
+  --color-surface:       #0a0618;
+  --color-surface-light: #111827;
+  --color-surface-card:  rgba(255,255,255,0.05);
 }
 
-/* Smooth scrolling and base styles */
 html {
   scroll-behavior: smooth;
 }
 
 body {
   font-family: var(--font-sans);
-  background: linear-gradient(135deg, #0f0c1a 0%, #1a1630 50%, #0f0c1a 100%);
+
+  /* Deep space gradient base */
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(139,92,246,0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(59,130,246,0.10) 0%, transparent 60%),
+    linear-gradient(160deg, #0a0618 0%, #0d1a3a 50%, #0a0618 100%);
   min-height: 100dvh;
+}
+
+/* ── Glass card utility ─────────────────────────────
+   Applied via className on section elements.
+   backdrop-blur requires the element to have a
+   non-opaque background to work correctly.          */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Slightly stronger glass for inner cells */
+.glass-inner {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Brand glow — used on the primary Add button */
+.glow-brand:hover {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.45), 0 0 40px rgba(139, 92, 246, 0.15);
+}
+
+/* Subtle purple text glow for the all-time total amount */
+.glow-text {
+  text-shadow: 0 0 30px rgba(167, 139, 250, 0.5);
 }
