@@ -487,6 +487,8 @@ function App() {
           backgroundColor: '#0e0b1f',
           borderBottom: '1px solid rgba(139,92,246,0.3)',
           boxShadow: '0 4px 24px rgba(0,0,0,0.6), 0 1px 0 rgba(139,92,246,0.2)',
+          // Push content below the iOS status bar (time, battery, notch)
+          paddingTop: 'env(safe-area-inset-top)',
         }}
       >
         <div className="flex items-center justify-between px-5 py-3 max-w-md mx-auto">
