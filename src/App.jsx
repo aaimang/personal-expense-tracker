@@ -494,10 +494,13 @@ function App() {
         <div className="flex items-center justify-between px-5 py-3 max-w-md mx-auto">
           <div className="flex items-center gap-2">
             <Wallet className="w-4 h-4 text-brand-400 flex-shrink-0" />
-            <span className="text-xs font-semibold text-white/60 uppercase tracking-wider">Total Spent</span>
+            <div>
+              <span className="text-xs font-semibold text-white/60 uppercase tracking-wider">Total Spent</span>
+              <p className="text-[10px] text-white/40 leading-none mt-0.5">{timeframeLabel}</p>
+            </div>
           </div>
           <span className="text-base font-extrabold text-white">
-            RM {totalSpentAll.toFixed(2)}
+            RM {totalSpentFiltered.toFixed(2)}
           </span>
         </div>
       </div>
