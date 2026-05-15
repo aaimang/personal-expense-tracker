@@ -236,11 +236,15 @@ function App() {
   const totalSpentFiltered = filteredExpenses.reduce((sum, e) => sum + e.price, 0)
   const chartData          = buildChartData(filteredExpenses)
 
-  const incomeKey    = timeframe === 'month'
-    ? `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`
-    : `${selectedYear}`
+  const incomeKey    = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`
   const monthlyIncome = incomeMap[incomeKey] || ''
-  const incomeValue   = parseFloat(monthlyIncome) || 0
+
+  // In year view: sum all 12 monthly income entries for selectedYear
+  const yearlyIncome = Array.from({ length: 12 }, (_, m) =>
+    parseFloat(incomeMap[`${selectedYear}-${String(m + 1).padStart(2, '0')}`] || 0)
+  ).reduce((a, b) => a + b, 0)
+
+  const incomeValue = timeframe === 'year' ? yearlyIncome : (parseFloat(monthlyIncome) || 0)
   const balance       = incomeValue - totalSpentFiltered
 
   const timeframeLabel = timeframe === 'month'
@@ -545,16 +549,25 @@ function App() {
           {/* Income / Expenses / Balance */}
           <div className="grid grid-cols-3 gap-2">
             <div className="flex flex-col gap-1 glass-inner rounded-xl p-2.5">
-              <span className="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Income</span>
-              <div className="relative">
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 text-[9px] text-gray-500">RM</span>
-                <input
-                  type="number" min="0" step="0.01" placeholder="0.00"
-                  value={monthlyIncome}
-                  onChange={e => setIncomeMap(m => ({ ...m, [incomeKey]: e.target.value }))}
-                  className="w-full pl-5 bg-transparent text-xs font-bold text-emerald-400 outline-none placeholder-gray-600"
-                />
-              </div>
+              <span className="text-[9px] uppercase tracking-wider text-gray-500 font-bold">
+                {timeframe === 'year' ? 'Total Income' : 'Income'}
+              </span>
+              {timeframe === 'year' ? (
+                // Read-only: sum of all monthly incomes for this year
+                <span className="text-xs font-bold text-emerald-400 truncate">
+                  RM {yearlyIncome.toFixed(2)}
+                </span>
+              ) : (
+                <div className="relative">
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 text-[9px] text-gray-500">RM</span>
+                  <input
+                    type="number" min="0" step="0.01" placeholder="0.00"
+                    value={monthlyIncome}
+                    onChange={e => setIncomeMap(m => ({ ...m, [incomeKey]: e.target.value }))}
+                    className="w-full pl-5 bg-transparent text-xs font-bold text-emerald-400 outline-none placeholder-gray-600"
+                  />
+                </div>
+              )}
             </div>
             <div className="flex flex-col gap-1 glass-inner rounded-xl p-2.5">
               <span className="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Expenses</span>
