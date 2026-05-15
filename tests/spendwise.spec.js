@@ -63,8 +63,8 @@ async function getExpensesTotal(page) {
 
 // Switch timeframe: 'Month' or 'Year'
 async function switchTimeframe(page, label) {
-  const toggleRow = page.locator('.flex.items-center.justify-between').first()
-  await toggleRow.locator(`button:has-text("${label}")`).click()
+  // Target the toggle buttons directly by their text inside the Statistics section
+  await page.locator(`h2:has-text("Statistics") ~ div button:has-text("${label}")`).click()
 }
 
 // ── Test Suite ────────────────────────────────────────────────────────────────

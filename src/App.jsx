@@ -70,15 +70,23 @@ function buildChartData(expenses) {
 }
 
 // Filter expenses to the selected timeframe window.
+// Uses exp.date if present (new), falls back to exp.id (old expenses without date field).
 function filterByTimeframe(expenses, timeframe, selectedMonth, selectedYear) {
   return expenses.filter(exp => {
-    const date = new Date(exp.id)
+    const date = new Date(exp.date || exp.id)
     if (timeframe === 'month') {
       return date.getMonth() === selectedMonth && date.getFullYear() === selectedYear
     }
     if (timeframe === 'year') return date.getFullYear() === selectedYear
     return true
   })
+}
+
+// Returns a datetime-local string (e.g. "2026-05-15T14:30") for the given Date.
+// datetime-local inputs require this exact format.
+function toDatetimeLocal(date) {
+  const pad = n => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
 // Migrate old localStorage shape → new shape.
@@ -107,7 +115,7 @@ function ChartTooltip({ active, payload }) {
   if (!active || !payload || payload.length === 0) return null
   const { name, value, percent } = payload[0].payload
   return (
-    <div className="glass rounded-xl px-3 py-2 text-xs text-white shadow-lg">
+    <div className="rounded-xl px-3 py-2 text-xs text-white shadow-xl" style={{ backgroundColor: '#1e1b2e', border: '1px solid rgba(255,255,255,0.12)' }}>
       <p className="font-bold">{name}</p>
       <p>RM {value.toFixed(2)} — {percent}%</p>
     </div>
@@ -166,6 +174,7 @@ function App() {
   const [name, setName]         = useState('')
   const [price, setPrice]       = useState('')
   const [category, setCategory] = useState('')
+  const [date, setDate]         = useState(() => toDatetimeLocal(new Date()))
 
   // ── EXPENSES ───────────────────────────────
   const [expenses, setExpenses] = useState(() => {
@@ -217,6 +226,22 @@ function App() {
   // drag state
   const dragIndexRef = useRef(null)
 
+  // ── STICKY TOTAL BAR ───────────────────────
+  // Becomes true once the total spent card scrolls out of view
+  const totalCardRef = useRef(null)
+  const [stickyVisible, setStickyVisible] = useState(false)
+
+  useEffect(() => {
+    const el = totalCardRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setStickyVisible(!entry.isIntersecting),
+      { threshold: 0 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   // ── PERSISTENCE ────────────────────────────
   useEffect(() => {
     localStorage.setItem('spendwise_expenses',   JSON.stringify(expenses))
@@ -261,12 +286,14 @@ function App() {
     if (!name.trim() || !price || parseFloat(price) <= 0 || !category) return
     setExpenses([...expenses, {
       id: Date.now(),
+      date: date ? new Date(date).getTime() : Date.now(),
       name: name.trim(),
       price: parseFloat(price),
       category,
       completed: false,
     }])
     setName(''); setPrice(''); setCategory('')
+    setDate(toDatetimeLocal(new Date())) // reset to now for next entry
   }
 
   function handleSubmit(e) { e.preventDefault(); handleAddExpense() }
@@ -334,7 +361,7 @@ function App() {
       head: [['Date', 'Item', 'Category', 'Price', 'Status']],
       body: filteredExpenses.length > 0
         ? filteredExpenses.map(exp => [
-            new Date(exp.id).toLocaleDateString(),
+            new Date(exp.date || exp.id).toLocaleDateString(),
             exp.name, exp.category,
             `RM ${exp.price.toFixed(2)}`,
             exp.completed ? 'Done' : 'Active',
@@ -449,6 +476,19 @@ function App() {
   // ─────────────────────────────────────────────
   return (
     <div className="min-h-dvh flex flex-col items-center px-4 py-8 sm:py-12">
+
+      {/* ── STICKY TOTAL BAR ──
+          Slides in from the top once the main Total Spent card scrolls out of view. */}
+      <div className={`fixed top-0 left-0 right-0 z-50 flex justify-center transition-all duration-300 ease-in-out
+        ${stickyVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
+        <div className="w-full max-w-md mx-4 mt-2">
+          <div className="glass rounded-2xl px-5 py-3 flex items-center justify-between shadow-lg shadow-black/30">
+            <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">Total Spent</span>
+            <span className="text-lg font-extrabold text-white glow-text">RM {totalSpentAll.toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+
       <div className="w-full max-w-md flex flex-col gap-6">
 
         {/* ── HEADER ── */}
@@ -465,7 +505,7 @@ function App() {
         </header>
 
         {/* ── TOTAL SPENT CARD ── */}
-        <section className="glass rounded-2xl p-6 text-center">
+        <section ref={totalCardRef} className="glass rounded-2xl p-6 text-center">
           <p className="text-sm font-medium text-white/50 uppercase tracking-wider mb-1">
             Total Spent (All Time)
           </p>
@@ -632,6 +672,17 @@ function App() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="item-date" className="text-xs font-medium text-gray-400">Date & Time</label>
+              <input
+                id="item-date"
+                type="datetime-local"
+                value={date}
+                onChange={e => setDate(e.target.value)}
+                className="w-full rounded-xl glass-inner px-4 py-3 text-sm text-white outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all [color-scheme:dark]"
+              />
             </div>
 
             <button
@@ -891,6 +942,9 @@ function App() {
                         </span>
                         <span className={`text-xs font-medium ${expense.completed ? 'text-gray-600' : 'text-gray-400'}`}>
                           RM {expense.price.toFixed(2)}
+                        </span>
+                        <span className={`text-[10px] ${expense.completed ? 'text-gray-600' : 'text-gray-500'}`}>
+                          {new Date(expense.date || expense.id).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
                     </div>
