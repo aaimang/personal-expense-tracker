@@ -5,7 +5,7 @@ import {
   Check, X, GripVertical, Pencil,
 } from 'lucide-react'
 
-import { PieChart, Pie, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { PieChart, Pie, Tooltip, ResponsiveContainer } from 'recharts'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
@@ -507,54 +507,64 @@ function App() {
 
           {/* Pie chart */}
           {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie
-                  data={withColors(chartData, categories)}
-                  cx="50%" cy="50%"
-                  innerRadius={55} outerRadius={90}
-                  paddingAngle={3} dataKey="value"
-                />
-                <Tooltip content={<ChartTooltip />} />
-                <Legend
-                  formatter={(value, entry) => (
-                    <span className="text-xs text-gray-300">
-                      {value} {entry.payload.percent}%
-                    </span>
-                  )}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="w-full">
+              {/* Donut chart — percentage-based radii so it scales on every screen */}
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                  <Pie
+                    data={withColors(chartData, categories)}
+                    cx="50%" cy="50%"
+                    innerRadius="38%" outerRadius="62%"
+                    paddingAngle={3} dataKey="value"
+                  />
+                  <Tooltip content={<ChartTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+
+              {/* Legend rendered manually so it wraps cleanly on narrow screens */}
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 mt-2">
+                {withColors(chartData, categories).map(entry => (
+                  <div key={entry.name} className="flex items-center gap-1.5 text-xs text-gray-300">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: entry.fill }}
+                    />
+                    <span>{entry.name}</span>
+                    <span className="text-gray-500">{entry.percent}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : (
-            <div className="h-[220px] flex flex-col items-center justify-center text-gray-500 text-sm gap-2">
+            <div className="h-[200px] flex flex-col items-center justify-center text-gray-500 text-sm gap-2">
               <ShoppingBag className="w-8 h-8 opacity-30" />
               <span>No expenses for this {timeframe}</span>
             </div>
           )}
 
           {/* Income / Expenses / Balance */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="flex flex-col gap-1 glass-inner rounded-xl p-3">
-              <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Income</span>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-col gap-1 glass-inner rounded-xl p-2.5">
+              <span className="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Income</span>
               <div className="relative">
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">RM</span>
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 text-[9px] text-gray-500">RM</span>
                 <input
                   type="number" min="0" step="0.01" placeholder="0.00"
                   value={monthlyIncome}
                   onChange={e => setIncomeMap(m => ({ ...m, [incomeKey]: e.target.value }))}
-                  className="w-full pl-6 bg-transparent text-sm font-bold text-emerald-400 outline-none placeholder-gray-600"
+                  className="w-full pl-5 bg-transparent text-xs font-bold text-emerald-400 outline-none placeholder-gray-600"
                 />
               </div>
             </div>
-            <div className="flex flex-col gap-1 glass-inner rounded-xl p-3">
-              <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Expenses</span>
-              <span className="text-sm font-bold text-white/80">
+            <div className="flex flex-col gap-1 glass-inner rounded-xl p-2.5">
+              <span className="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Expenses</span>
+              <span className="text-xs font-bold text-white/80 truncate">
                 RM {totalSpentFiltered.toFixed(2)}
               </span>
             </div>
-            <div className="flex flex-col gap-1 glass-inner rounded-xl p-3">
-              <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Balance</span>
-              <span className={`text-sm font-bold ${balance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            <div className="flex flex-col gap-1 glass-inner rounded-xl p-2.5">
+              <span className="text-[9px] uppercase tracking-wider text-gray-500 font-bold">Balance</span>
+              <span className={`text-xs font-bold truncate ${balance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                 RM {balance.toFixed(2)}
               </span>
             </div>
