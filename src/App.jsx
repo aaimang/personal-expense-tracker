@@ -478,14 +478,25 @@ function App() {
     <div className="min-h-dvh flex flex-col items-center px-4 py-8 sm:py-12">
 
       {/* ── STICKY TOTAL BAR ──
-          Slides in from the top once the main Total Spent card scrolls out of view. */}
-      <div className={`fixed top-0 left-0 right-0 z-50 flex justify-center transition-all duration-300 ease-in-out
-        ${stickyVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
-        <div className="w-full max-w-md mx-4 mt-2">
-          <div className="glass rounded-2xl px-5 py-3 flex items-center justify-between shadow-lg shadow-black/30">
-            <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">Total Spent</span>
-            <span className="text-lg font-extrabold text-white glow-text">RM {totalSpentAll.toFixed(2)}</span>
+          Slides in from the top once the main Total Spent card scrolls out of view.
+          Solid background so page content never bleeds through while scrolling. */}
+      <div
+        className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out
+          ${stickyVisible ? 'translate-y-0' : '-translate-y-full'}`}
+        style={{
+          backgroundColor: '#0e0b1f',
+          borderBottom: '1px solid rgba(139,92,246,0.3)',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.6), 0 1px 0 rgba(139,92,246,0.2)',
+        }}
+      >
+        <div className="flex items-center justify-between px-5 py-3 max-w-md mx-auto">
+          <div className="flex items-center gap-2">
+            <Wallet className="w-4 h-4 text-brand-400 flex-shrink-0" />
+            <span className="text-xs font-semibold text-white/60 uppercase tracking-wider">Total Spent</span>
           </div>
+          <span className="text-base font-extrabold text-white">
+            RM {totalSpentAll.toFixed(2)}
+          </span>
         </div>
       </div>
 
@@ -509,7 +520,7 @@ function App() {
           <p className="text-sm font-medium text-white/50 uppercase tracking-wider mb-1">
             Total Spent (All Time)
           </p>
-          <p className="text-4xl font-extrabold text-white glow-text">
+          <p className="text-3xl sm:text-4xl font-extrabold text-white glow-text break-all">
             RM {totalSpentAll.toFixed(2)}
           </p>
         </section>
@@ -634,7 +645,7 @@ function App() {
         </section>
 
         {/* ── ADD EXPENSE FORM ── */}
-        <section className="glass rounded-2xl p-5">
+        <section className="glass rounded-2xl p-5 overflow-hidden">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <h2 className="text-base font-semibold text-white">Add Expense</h2>
 
@@ -676,13 +687,17 @@ function App() {
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="item-date" className="text-xs font-medium text-gray-400">Date & Time</label>
-              <input
-                id="item-date"
-                type="datetime-local"
-                value={date}
-                onChange={e => setDate(e.target.value)}
-                className="w-full rounded-xl glass-inner px-4 py-3 text-sm text-white outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all [color-scheme:dark]"
-              />
+              {/* overflow-hidden + min-w-0 prevents the native datetime widget from
+                  expanding outside the card on iOS Safari */}
+              <div className="w-full min-w-0 overflow-hidden rounded-xl glass-inner focus-within:ring-2 focus-within:ring-brand-500/25 focus-within:border-brand-400 transition-all">
+                <input
+                  id="item-date"
+                  type="datetime-local"
+                  value={date}
+                  onChange={e => setDate(e.target.value)}
+                  className="w-full min-w-0 bg-transparent px-4 py-3 text-xs text-white outline-none [color-scheme:dark]"
+                />
+              </div>
             </div>
 
             <button
@@ -925,10 +940,10 @@ function App() {
                       className="flex flex-col gap-1 cursor-pointer flex-grow py-1"
                       onClick={() => handleToggleComplete(expense.id)}
                     >
-                      <span className={`text-sm font-semibold leading-tight transition-all ${expense.completed ? 'text-gray-500 line-through' : 'text-white'}`}>
+                      <span className={`text-sm font-semibold leading-tight transition-all truncate ${expense.completed ? 'text-gray-500 line-through' : 'text-white'}`}>
                         {expense.name}
                       </span>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         {/* Category badge with dynamic icon + color */}
                         <span
                           className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1"
